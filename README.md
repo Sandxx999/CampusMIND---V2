@@ -1,88 +1,123 @@
-# CampusMIND 2.0 — Enterprise Campus Intelligence Platform
+# 🎓 CampusMIND 2.0 — Enterprise Campus Intelligence Platform
 
-CampusMIND 2.0 is an enterprise-grade Retrieval-Augmented Generation (RAG) assistant designed for higher education institutions. It provides role-scoped access control (RBAC), citation tracking, student analytics, structured logging, intelligent document chunking, hybrid vector/lexical retrieval, evidence quality scoring, prompt injection defense, and robust API security.
+CampusMIND 2.0 is an enterprise-grade, AI-powered Retrieval-Augmented Generation (RAG) assistant and portal designed specifically for higher education institutions. It provides role-scoped access control (RBAC), intelligent student analytics, an interactive knowledge graph, hybrid vector/lexical retrieval, and an ultra-modern glassmorphic user interface.
+
+Whether tracking attendance, analyzing grades, visualizing institutional relationships, or querying the CampusMIND AI Copilot for exam schedules, CampusMIND delivers lightning-fast, verified insights.
 
 ---
 
-## Current Architecture (Phase 4 Advanced RAG & Campus Intelligence Engine)
+## ✨ Key Features
+
+- 🤖 **CampusMIND AI Copilot**: A highly-optimized AI assistant (powered by Google Gemini) capable of answering both institutional queries (using RAG against student handbooks and policy documents) and personal student queries (attendance, grades). Features sub-3-second latency and intelligent bypass of complex graph queries for personal lookups.
+- 🌐 **Interactive Knowledge Graph Explorer**: A visual nodes-and-edges graph explorer built with CytoscapeJS to map relationships between courses, faculty, students, and departments.
+- ✨ **Ultra-Modern UI/UX**: An immersive frontend featuring frosted glassmorphism aesthetics, Framer Motion 3D tilt effects, ambient mesh lighting, dynamic charting, and seamless micro-interactions.
+- 🎓 **Role-Based Access Dashboards**: Dedicated workspaces for Students (tracking grades, radar charts of performance, attendance, upcoming tasks) and Faculty (managing tasks and student performance).
+- 🔒 **Enterprise Security**: End-to-End JWT authentication, Role-Based Access Control (RBAC), Object Knowledge Foundation (OKF) protection, and prompt injection defense.
+
+---
+
+## 🛠️ Technology Stack
+
+### **Frontend**
+- **Framework**: React 18 + Vite
+- **Styling**: Tailwind CSS, Glassmorphism, CSS Modules
+- **Animations & Physics**: Framer Motion, Canvas Confetti
+- **Data Visualization**: Recharts (Radar, Pie, Bar charts)
+- **Graph Explorer**: React-CytoscapeJS
+- **Icons**: Lucide-React
+
+### **Backend**
+- **API Framework**: FastAPI (Python)
+- **AI & LLMs**: Google `genai` SDK (Gemini Flash Lite models)
+- **Database & ORM**: SQLAlchemy 2.x, Alembic, SQLite/PostgreSQL
+- **Vector Database**: ChromaDB
+- **RAG Engine**: Hybrid campus retriever, document ingestors, and deterministic hybrid rerankers.
+
+---
+
+## 🏗️ Architecture Overview
 
 CampusMIND 2.0 uses a **Modular Monolith** architecture:
 
-- **Presentation**: React 18 + Vite frontend with Campus Intelligence Portal, Assistant Chat, Evidence Quality Indicators, First-Class Citations, and System Hub.
-- **API & Routing**: FastAPI backend with `/api/v1/` versioned routes for Academics, Attendance, Assessments, Announcements, Campus Events, Knowledge Foundation, Search, and RAG Chat.
-- **Core Architecture**:
-  - `core/`: Environment-backed configuration, secret-masking logging, correlation middleware.
-  - `db/`: SQLAlchemy 2.x ORM models & Alembic database migration pipeline (SQLite / PostgreSQL dual-dialect).
-  - `repositories/`: Data access abstractions (`StudentRepository`, `AcademicRepository`, `AttendanceRepository`, `AssessmentRepository`, `AnnouncementRepository`, `EventRepository`, `KnowledgeRepository`, `AuditRepository`).
-  - `services/`: Domain services (`AuthService`, `StudentService`, `AcademicService`, `AttendanceService`, `AssessmentService`, `AnnouncementService`, `EventService`, `KnowledgeService`, `SearchService`, `AdminService`, `ChatService`).
-- **Advanced RAG Engine (`rag/`)**:
-  - `embeddings.py`: `EmbeddingProvider` abstraction (SentenceTransformers, Gemini, Mock).
-  - `vector_store.py`: `VectorStore` encapsulation around ChromaDB persistent client.
-  - `chunker.py`: `InstitutionalChunker` section and heading aware text splitter.
-  - `ingest.py`: `DocumentIngestionEngine` with SHA-256 checksums, idempotency, versioning, and stale vector purging.
-  - `retriever.py`: `HybridCampusRetriever` combining vector similarity, keyword density, and server-side RBAC audience filtering.
-  - `reranker.py`: `DeterministicHybridReranker` and empirical `evidence_quality` signal (`high`, `medium`, `low`, `insufficient`).
-  - `query_processor.py`: `QueryProcessor` for sanitization, prompt-injection defense, and intent classification.
-  - `evaluator.py`: `RAGEvaluator` benchmark harness for hit rate, citations, and security metrics.
-- **Security & Authorization**: Server-side JWT validation, RBAC (`student`, `faculty`, `admin`), IDOR protection, student database isolation, prompt injection defense with XML framing, fail-closed configuration.
+- `frontend/`: The React + Vite SPA containing `components/` (ChatAssistant, Dashboards), `pages/` (Glassmorphic Login, App Hub), and API lib helpers.
+- `backend/`: 
+  - `main.py`: FastAPI entrypoint.
+  - `api/` & `services/`: Endpoints and domain logic (ChatService, Analytics, Auth).
+  - `rag/`: Advanced RAG Engine encapsulating document ingestion, ChromaDB vector store, semantic chunking, and deterministic hybrid reranking.
+  - `scripts/`: Standalone utilities (e.g., `benchmark_chat_speed.py` to assert AI sub-5s latencies).
+  - `db/` & `models/`: Relational schema and ORM definitions.
 
 ---
 
-## Quick Start
+## 🚀 Quick Start Guide
 
-### Local Development
-
-1. **Configure Environment Variables**:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. **Backend Setup & Run**:
-   ```bash
-   cd backend
-   python -m venv venv
-   # Activate virtual environment
-   # Windows: .\venv\Scripts\activate | Linux/macOS: source venv/bin/activate
-   pip install -r requirements.txt
-   python main.py
-   ```
-
-3. **Frontend Setup & Run**:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-### Docker Compose Execution
-
+### 1. Configure Environment
+Create your `.env` file in the root and `backend` directories and ensure you have your Gemini API key ready:
 ```bash
-docker-compose up --build
+cp .env.example .env
+# Edit .env and add: GEMINI_API_KEY=your_api_key_here
+```
+
+### 2. Backend Setup
+Run the FastAPI backend on `http://localhost:8000`:
+```bash
+cd backend
+python -m pip install -r requirements.txt
+python main.py
+```
+*(Optional) Ingest knowledge documents into ChromaDB:*
+```bash
+cd backend
+python -m rag.ingest
+```
+
+### 3. Frontend Setup
+Run the Vite development server on `http://localhost:5173`:
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
 ---
 
-## Running Tests & Verification
+## 🔑 Demo Credentials
 
-- **Run Python Backend Tests**:
-  ```bash
-  python -m pytest
-  ```
+The Login portal features an ultra-modern 3D glassmorphic card with **1-Click Demo Quick-Fill** buttons. You can click `🎓 Student Demo` or `👨‍🏫 Faculty Demo` on the login screen to automatically inject these credentials:
 
-- **Run RAG Evaluation Benchmark**:
-  ```bash
-  python -m rag.evaluator
-  ```
+| Role | Username | Password |
+|---|---|---|
+| **Student** | `STU_2024_015` | `password123` |
+| **Faculty** | `FAC_DEMO_01` | `password123` |
 
-- **Build Frontend Production Bundle**:
-  ```bash
-  cd frontend && npm run build
-  ```
+*(Note: Data provided in the demo is synthesized for development purposes.)*
 
 ---
 
-## Documentation
+## 🧪 Testing & Benchmarks
 
+Ensure your AI assistant meets the strict sub-5-second SLA constraint:
+```bash
+cd backend
+python scripts/benchmark_chat_speed.py
+```
+
+Run the standard backend Python test suite:
+```bash
+python -m pytest tests
+```
+
+Build the frontend to verify zero compilation errors:
+```bash
+cd frontend
+npm run build
+```
+
+---
+
+## 📚 Documentation
+
+For deeper dives into the implementation details, view the `docs/` folder:
 - [System Architecture](docs/architecture.md)
 - [Advanced RAG Architecture](docs/RAG_ARCHITECTURE.md)
 - [Production Data & Identity Architecture](docs/DATABASE_ARCHITECTURE.md)

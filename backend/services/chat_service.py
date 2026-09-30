@@ -1,43 +1,17 @@
-"""
-Chat & Advanced RAG Intelligence Service for CampusMIND 2.0.
-
-Handles rate limiting, query normalization/classification, hybrid retrieval,
-student record grounding, evidence quality evaluation, LLM synthesis, and audit logging.
-"""
-import re
 import time
 import uuid
-import warnings
-from typing import Dict, List, Tuple
-
+from typing import Dict, List, Optional
 from fastapi import HTTPException, status
-from auth.rbac import can_access_student_record
+from pydantic import BaseModel
+
 from core.config import settings
 from core.logging import logger
-from models.schemas import ChatRequest, ChatResponse, FeedbackRequest, SourceCitation, UserSchema
-from rag.prompt_templates import rag_prompt
-from rag.query_processor import QueryProcessor
 from repositories.audit_repository import audit_repository, AuditRepository
 from repositories.student_repository import student_repository, StudentRepository
-
-# Resilient Gemini SDK import
-try:
-    from google import genai
-    LEGACY_GENAI = False
-except ImportError:
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            import google.generativeai as genai
-        LEGACY_GENAI = True
-    except ImportError:
-        genai = None
-        LEGACY_GENAI = False
-
+from models.schemas import ChatRequest, ChatResponse, FeedbackRequest, UserSchema, SourceCitation
+from okf.hybrid_retriever import OKFHybridRetriever
 
 class ChatService:
-    """Service managing advanced RAG chat execution, rate limiting, and feedback."""
-
     def __init__(
         self,
         audit_repo: AuditRepository = audit_repository,
@@ -46,6 +20,7 @@ class ChatService:
         self.audit_repo = audit_repo
         self.student_repo = student_repo
         self.user_request_timestamps: Dict[str, List[float]] = {}
+        self.retriever = OKFHybridRetriever()
 
     def enforce_rate_limit(self, user: UserSchema) -> None:
         """Enforces per-user rate limiting using a sliding window strategy."""
@@ -63,288 +38,63 @@ class ChatService:
         valid_timestamps.append(now)
         self.user_request_timestamps[user_id] = valid_timestamps
 
-    def synthesize_grounded_answer(self, query: str, retrieved_chunks: list) -> str:
-        """Synthesizes structured Markdown answer grounded strictly in retrieved context."""
-        if not retrieved_chunks:
-            return "I don't have information on that in the official campus database."
-
-        doc_snippets = {}
-        analytics_chunks = []
-        rag_chunks = []
-
-        for c in retrieved_chunks:
-            doc_name = c.get("document_name", "Campus Document")
-            snippet = c.get("snippet", "").strip()
-            if c.get("category") == "analytics_engine" or c.get("document_id") == "student_analytics_record":
-                analytics_chunks.append(snippet)
-            else:
-                if doc_name not in doc_snippets:
-                    doc_snippets[doc_name] = []
-                doc_snippets[doc_name].append(snippet)
-                rag_chunks.append(c)
-
-        response_lines = []
-
-        # If analytics snippet exists, format personal metrics section first
-        if analytics_chunks:
-            for snippet in analytics_chunks:
-                response_lines.append(snippet)
-
-        # If RAG snippets also exist, format official policy section
-        if doc_snippets:
-            query_lower = query.lower()
-            header_title = "Official Campus Information"
-            if any(k in query_lower for k in ["attendance", "absent", "missed", "debarred"]):
-                header_title = "Official Institutional Attendance Policy"
-            elif any(k in query_lower for k in ["grade", "cgpa", "sgpa", "transcript", "marksheet", "gpa", "score"]):
-                header_title = "Official Grade Sheets & Transcripts Policy"
-            elif any(k in query_lower for k in ["exam", "timetable", "schedule", "date", "mid-term", "end-sem", "test", "slot"]):
-                header_title = "Semester Examination Schedule & Regulations"
-
-            response_lines.append(f"\n### 📋 {header_title}\n")
-            seen_lines = set()
-            key_points = []
-
-            for doc_name, snippets in doc_snippets.items():
-                for snippet in snippets:
-                    lines = snippet.split("\n")
-                    for line in lines:
-                        line_str = line.strip()
-                        if not line_str or line_str in seen_lines:
-                            continue
-                        if "IFHE HYDERABAD" in line_str or "FOUNDATION FOR HIGHER EDUCATION" in line_str:
-                            continue
-                        seen_lines.add(line_str)
-                        if re.match(r"^\d+\.\s+", line_str):
-                            key_points.append(f"\n**{line_str}**")
-                        elif line_str.startswith("-") or line_str.startswith("*"):
-                            key_points.append(f"  {line_str}")
-                        else:
-                            key_points.append(f"• {line_str}")
-
-            if key_points:
-                response_lines.append("\n".join(key_points))
-            else:
-                for doc_name, snippets in doc_snippets.items():
-                    response_lines.append(f"\n**Source:** `{doc_name}`\n" + "\n".join(snippets))
-
-            cited_docs = ", ".join([f"`{name}`" for name in doc_snippets.keys()])
-            response_lines.append(f"\n\n---\n*Official institutional information verified against: {cited_docs}*")
-
-        return "\n\n".join(response_lines) if response_lines else "I don't have information on that in the official campus database."
-
-    def generate_llm_answer(self, prompt_text: str, retrieved_chunks: list = None, question: str = "") -> str:
-        """Invokes Gemini API or falls back to grounded synthesis."""
-        if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "dummy_key_replace_with_real":
-            try:
-                if LEGACY_GENAI and genai:
-                    genai.configure(api_key=settings.GEMINI_API_KEY)
-                    model = genai.GenerativeModel("gemini-1.5-flash")
-                    response = model.generate_content(prompt_text)
-                    if response and response.text:
-                        return response.text
-                elif genai:
-                    client = genai.Client(api_key=settings.GEMINI_API_KEY)
-                    response = client.models.generate_content(
-                        model="gemini-1.5-flash",
-                        contents=prompt_text,
-                    )
-                    if response and response.text:
-                        return response.text
-            except Exception as e:
-                logger.error(f"Error calling Gemini API: {e}")
-
-        return self.synthesize_grounded_answer(question, retrieved_chunks)
-
     def process_chat_query(self, request: ChatRequest, user: UserSchema) -> ChatResponse:
-
         """
-        Processes user chat request using normalization, intelligent query routing, hybrid retrieval,
-        DB grounding, evidence quality scoring, grounded LLM synthesis, and structured audit logging.
+        Processes user chat request using OKF Hybrid Retriever and OKF Graph Agent.
         """
         self.enforce_rate_limit(user)
         start_time = time.time()
         query_id = f"qry_{uuid.uuid4().hex[:8]}"
 
-        # Step 1: Query Normalization and Intent Classification
-        qp_res = QueryProcessor.process(request.message)
-        clean_message = qp_res["normalized_query"]
+        # Step 1: Query Normalization
+        clean_message = request.message.strip()
 
-        from analytics.query_router import academic_query_router
-        from analytics.engine import analytics_engine
-        from db.session import get_db_session
-        from db.models import User, StudentProfile
-
-        router_res = academic_query_router.classify_academic_query(clean_message)
-        query_intent = router_res["intent"]
-
-        # Step 2: Access-Aware Hybrid Retrieval & Reranking
-        from rag.retriever import get_retriever
-        retriever = get_retriever()
-
-        retrieved_chunks, evidence_quality, max_confidence = retriever.retrieve_hybrid_evidence(
-            query=clean_message, user_role=user.role
-        )
-
-        # Step 3: Phase 5 Academic Analytics Engine Integration
-        if query_intent in ("STUDENT_ANALYTICS", "STUDENT_ACADEMIC_DATA", "COURSE_ANALYTICS"):
-            try:
-                with get_db_session() as db:
-                    db_user = db.query(User).filter(User.username == user.username).first()
-                    sp = None
-                    if db_user:
-                        sp = db.query(StudentProfile).filter(StudentProfile.user_id == db_user.id).first()
-                    if not sp and user.enrollment_no:
-                        sp = db.query(StudentProfile).filter(StudentProfile.enrollment_no == user.enrollment_no).first()
-
-                    if sp:
-                        summary = analytics_engine.compute_student_summary(db, sp.id)
-                        att_sum = summary.get("attendance_summary", {})
-                        risk_sum = summary.get("risk_analysis", {})
-                        recs = summary.get("recommendations", [])
-
-                        analytics_snippet_lines = [
-                            f"### 📊 Calculated Personal Academic Metrics ({sp.enrollment_no})",
-                            f"• Cumulative CGPA: {sp.cgpa} | SGPA: {sp.sgpa} | Backlogs: {sp.backlogs}",
-                            f"• Overall Attendance: {att_sum.get('overall_attendance_pct', sp.attendance_pct)}% "
-                            f"({att_sum.get('total_attended', 0)}/{att_sum.get('total_conducted', 0)} classes attended, {att_sum.get('total_missed', 0)} missed)",
-                            f"\n### ⚠️ Academic Risk Classification: **{risk_sum.get('risk_level', 'UNKNOWN')}**",
-                            f"• Required Policy Threshold: {risk_sum.get('required_percentage', 75.0)}%",
-                            f"• Deficit Percentage: {risk_sum.get('deficit_percentage', 0.0)}%",
-                            f"• Classes Needed to Recover: {risk_sum.get('classes_needed_to_recover', 0)} consecutive class(es)",
-                            f"• Details: {risk_sum.get('explanation', '')}",
-                        ]
-
-                        if recs:
-                            analytics_snippet_lines.append("\n### 💡 Recommended Action Steps")
-                            for r in recs:
-                                analytics_snippet_lines.append(f"• **[{r['severity'].upper()}] {r['recommendation']}**: {r['reason']}")
-
-                        analytics_snippet = "\n".join(analytics_snippet_lines)
-
-                        retrieved_chunks.insert(
-                            0,
-                            {
-                                "document_id": "student_analytics_record",
-                                "document_name": "student_academic_analytics_engine",
-                                "section": "Personal Academic Analytics",
-                                "category": "analytics_engine",
-                                "version": "2.0",
-                                "snippet": analytics_snippet,
-                                "score": 0.99,
-                            },
-                        )
-                        max_confidence = max(max_confidence, 0.99)
-                        evidence_quality = "high"
-            except Exception as e:
-                logger.error(f"Error computing analytics during chat query: {e}")
-
-        # Step 4: Authorized Private Student Database Grounding (Fallback to basic profile)
-        target_enrollment = qp_res.get("target_enrollment_no")
-        if target_enrollment and can_access_student_record(user, target_enrollment) and not any(c.get("document_id") == "student_analytics_record" for c in retrieved_chunks):
-            try:
-                student_row = self.student_repo.get_by_enrollment(target_enrollment)
-                if student_row:
-                    s = student_row
-                    student_snippet = (
-                        f"STUDENT RECORD: {s['enrollment_no']}\n"
-                        f"• Name: {s['name']}\n"
-                        f"• Enrollment No: {s['enrollment_no']}\n"
-                        f"• Email: {s['email']}\n"
-                        f"• Branch / Department: {s['branch']}\n"
-                        f"• Academic Year: Year {s['year']} (Semester {s['semester']})\n"
-                        f"• Enrolled Courses: {s['courses_enrolled']}\n"
-                        f"• Current Semester SGPA: {s['sgpa']}\n"
-                        f"• Cumulative CGPA: {s['cgpa']}\n"
-                        f"• Attendance Percentage: {s['attendance_pct']}%\n"
-                        f"• Active Backlogs: {s['backlogs']}\n"
-                        f"• Tuition Fee Status: {s['fee_status']}"
-                    )
-                    retrieved_chunks.insert(
-                        0,
-                        {
-                            "document_id": "student_db_record",
-                            "document_name": "ifhe_student_directory_records.txt",
-                            "section": "Student Profile",
-                            "category": "student_records",
-                            "version": "1.0",
-                            "snippet": student_snippet,
-                            "score": 0.99,
-                        },
-                    )
-                    max_confidence = max(max_confidence, 0.99)
-                    evidence_quality = "high"
-            except Exception as e:
-                logger.error(f"Error querying student repository during RAG chat: {e}")
-
-        # Step 5: Evidence Quality Check / Fallback Defense
-        if not retrieved_chunks or evidence_quality == "insufficient" or max_confidence < settings.SIMILARITY_THRESHOLD:
-            fallback_answer = "I don't have information on that in the official campus database."
-            latency_ms = round((time.time() - start_time) * 1000, 2)
-
-            self.audit_repo.log_query(
-                query_id=query_id,
-                username=user.username,
-                role=user.role,
-                question=clean_message,
-                answer=fallback_answer,
-                latency_ms=latency_ms,
-                chunk_count=0,
-                confidence=max_confidence,
-                is_fallback=True,
-            )
-
-            return ChatResponse(
-                query_id=query_id,
-                answer=fallback_answer,
-                sources=[],
-                confidence=max_confidence,
-                evidence_quality="insufficient",
-                is_fallback=True,
-            )
-
-        # Step 6: Grounded Answer Synthesis
-        formatted_context = "\n\n".join([f"[{c.get('document_name', 'Doc')}]: {c.get('snippet', '')}" for c in retrieved_chunks])
-        prompt_text = rag_prompt.format(context=formatted_context, question=clean_message)
-
-        answer_text = self.generate_llm_answer(prompt_text, retrieved_chunks=retrieved_chunks, question=clean_message)
+        # Step 2: OKF Graph First Retrieval & Synthesis
+        user_attributes = {"role": user.role, "enrollment_no": user.enrollment_no, "username": user.username}
+        try:
+            okf_res = self.retriever.query(clean_message, user_attributes)
+        except Exception as e:
+            logger.error(f"OKF Retrieval Failed: {e}")
+            okf_res = {
+                "source": "fallback_text",
+                "reasoning": "Exception occurred during traversal.",
+                "answer": "An error occurred while answering your question.",
+                "context": []
+            }
+        
         latency_ms = round((time.time() - start_time) * 1000, 2)
+        
+        source = okf_res.get("source", "fallback_text")
+        reasoning = okf_res.get("reasoning", "")
+        answer = okf_res.get("answer") or "I could not find an answer in the graph or text context."
+        anchors = okf_res.get("extracted_anchors", [])
 
-        # Step 7: First-Class Citations Format
-        sources = [
-            SourceCitation(
-                document_name=c.get("document_name", "Campus Document"),
-                section=c.get("section", "General"),
-                category=c.get("category", "general"),
-                version=c.get("version", "1.0"),
-                snippet=c.get("snippet", "")[:200] + ("..." if len(c.get("snippet", "")) > 200 else ""),
-                score=float(c.get("rerank_score", c.get("score", 0.0))),
-            )
-            for c in retrieved_chunks
-        ]
+        is_fallback = (source != "okf_graph")
 
-        # Step 8: Observability & Audit Logging
+        # Step 3: Observability & Audit Logging
         self.audit_repo.log_query(
             query_id=query_id,
             username=user.username,
             role=user.role,
             question=clean_message,
-            answer=answer_text,
+            answer=answer,
             latency_ms=latency_ms,
-            chunk_count=len(retrieved_chunks),
-            confidence=max_confidence,
-            is_fallback=False,
+            chunk_count=len(anchors), # log anchors as chunks
+            confidence=1.0 if not is_fallback else 0.5,
+            is_fallback=is_fallback,
         )
 
         return ChatResponse(
             query_id=query_id,
-            answer=answer_text,
-            sources=sources,
-            confidence=max_confidence,
-            evidence_quality=evidence_quality,
-            is_fallback=False,
+            answer=answer,
+            sources=[], # OKF uses reasoning trace instead of raw citations
+            confidence=1.0 if not is_fallback else 0.5,
+            evidence_quality="high" if not is_fallback else "medium",
+            is_fallback=is_fallback,
+            source=source,
+            reasoning_trace=reasoning,
+            extracted_anchors=anchors
         )
-
 
     def submit_feedback(self, request: FeedbackRequest, user: UserSchema) -> dict:
         """Processes user feedback submission, ensuring ownership of the query."""

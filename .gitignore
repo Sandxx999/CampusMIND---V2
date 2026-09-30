@@ -35,3 +35,4 @@ frontend/.vite/
 *.swp
 *.swo
 Thumbs.db
+node_modules/

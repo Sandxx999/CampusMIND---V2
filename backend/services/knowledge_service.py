@@ -11,8 +11,7 @@ from db.models import User, KnowledgeDocument
 from models.schemas import UserSchema
 from repositories.knowledge_repository import knowledge_repository
 from repositories.audit_repository import audit_repository
-from rag.ingest import DocumentIngestionEngine
-from rag.vector_store import get_vector_store
+from okf.ingest import OKFIngestionPipeline
 
 
 class KnowledgeService:
@@ -25,8 +24,8 @@ class KnowledgeService:
             )
 
         file_path = data["file_path"]
-        engine = DocumentIngestionEngine()
-        ingest_res = engine.ingest_single_document(file_path, force=True)
+        engine = OKFIngestionPipeline()
+        ingest_res = engine.ingest_single_document(file_path)
 
         if ingest_res.get("status") == "failed":
             raise HTTPException(
@@ -166,11 +165,10 @@ class KnowledgeService:
                     detail=f"Knowledge document '{doc_id}' not found."
                 )
 
-            # Synchronize vector store
-            vector_store = get_vector_store()
+            # OKF graph sync could go here in the future
             if not is_active:
-                vector_store.delete_document_chunks(doc_id)
-                vector_store.delete_document_chunks(doc.title)
+                # graph_store.delete_nodes_by_source(doc_id)
+                pass
 
             actor = session.query(User).filter(User.username == user.username).first()
             action_name = "KNOWLEDGE_DOC_ACTIVATED" if is_active else "KNOWLEDGE_DOC_DEACTIVATED"

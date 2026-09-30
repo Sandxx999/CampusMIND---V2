@@ -58,9 +58,9 @@ def readiness_check(req: Request):
     db_ok, db_msg = check_database_health()
     db_status = "connected" if db_ok else "unhealthy"
 
-    from rag.vector_store import get_vector_store
-    vstore_health = get_vector_store().health_check()
-    chroma_status = "connected" if vstore_health.get("status") == "connected" else "not_initialized"
+    # OKF Graph uses the same PostgreSQL DB, so it's already checked
+    vstore_health = {"status": "connected"}
+    chroma_status = "deprecated"
 
     task_provider = settings.TASK_QUEUE_PROVIDER
     task_queue_status = "operational"
@@ -102,11 +102,8 @@ def dependency_health_check():
     Detailed dependency health inspection endpoint.
     Exposes dependency statuses without leaking credentials or stack traces.
     """
-    from rag.vector_store import get_vector_store
-    
     db_ok, db_msg = check_database_health()
-    vstore_health = get_vector_store().health_check()
-    chroma_exists = vstore_health.get("status") == "connected"
+    chroma_exists = False # Deprecated in OKF Phase 4
 
     task_provider = settings.TASK_QUEUE_PROVIDER
     t_status = "operational"

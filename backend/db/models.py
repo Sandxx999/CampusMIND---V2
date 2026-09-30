@@ -584,3 +584,159 @@ class NotificationAlert(Base):
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     user = relationship("User", back_populates="notifications")
+
+# --- NEW PORTAL MODELS ---
+
+class UserAccount(Base):
+    __tablename__ = "portal_user_accounts"
+    
+    id = Column(String(50), primary_key=True, index=True)
+    role = Column(String(50), nullable=False) # 'student', 'faculty'
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    full_name = Column(String(255), nullable=False)
+    profile_photo_url = Column(String(500), nullable=True)
+    department = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+class StudentAcademicProfile(Base):
+    __tablename__ = "portal_student_profiles"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), unique=True, nullable=False)
+    roll_number = Column(String(100), unique=True, nullable=False)
+    program = Column(String(255), nullable=False)
+    current_semester = Column(Integer, nullable=False)
+    batch_year = Column(String(50), nullable=False)
+    overall_attendance_pct = Column(Float, nullable=False)
+    bio = Column(Text, nullable=True)
+    location = Column(String(100), nullable=True)
+    academic_status = Column(String(50), default="Active")
+    links = Column(Text, nullable=True) # JSON stored as Text
+
+class ExamResult(Base):
+    __tablename__ = "portal_exam_results"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    exam_type = Column(String(100), nullable=False)
+    course_code = Column(String(50), nullable=False)
+    course_name = Column(String(255), nullable=False)
+    marks_obtained = Column(Float, nullable=False)
+    max_marks = Column(Float, nullable=False)
+    grade = Column(String(10), nullable=False)
+    status = Column(String(50), nullable=False)
+
+class ScheduleSlot(Base):
+    __tablename__ = "portal_schedule_slots"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    day_of_week = Column(String(20), nullable=False)
+    start_time = Column(String(20), nullable=False)
+    end_time = Column(String(20), nullable=False)
+    course_code = Column(String(50), nullable=False)
+    course_name = Column(String(255), nullable=False)
+    venue = Column(String(100), nullable=False)
+    faculty_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    target_program = Column(String(255), nullable=False)
+
+class SubjectResource(Base):
+    __tablename__ = "portal_subject_resources"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    course_code = Column(String(50), nullable=False)
+    faculty_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    resource_type = Column(String(50), nullable=False)
+    file_url = Column(String(500), nullable=False)
+    uploaded_at = Column(DateTime, default=utc_now)
+
+class NoticeBoardItem(Base):
+    __tablename__ = "portal_notice_board"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    target_audience = Column(String(50), nullable=False) # 'ALL', 'STUDENT', 'FACULTY'
+    posted_by = Column(String(50), nullable=False)
+    posted_at = Column(DateTime, default=utc_now)
+
+class StudentSkill(Base):
+    __tablename__ = "portal_student_skills"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    category = Column(String(50), nullable=False)
+    proficiency_pct = Column(Integer, nullable=False)
+    verified = Column(Boolean, default=False)
+
+class StudentProject(Base):
+    __tablename__ = "portal_student_projects"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=False)
+    description = Column(Text, nullable=False)
+    role = Column(String(100), nullable=False)
+    technologies = Column(Text, nullable=False)
+    status = Column(String(50), nullable=False)
+    github_url = Column(String(255), nullable=True)
+    live_demo_url = Column(String(255), nullable=True)
+
+class StudentCertification(Base):
+    __tablename__ = "portal_student_certifications"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    issuer = Column(String(100), nullable=False)
+    issue_date = Column(String(50), nullable=True)
+    credential_id = Column(String(100), nullable=True)
+    credential_url = Column(String(255), nullable=True)
+    skills = Column(Text, nullable=True)
+
+class StudentExperience(Base):
+    __tablename__ = "portal_student_experiences"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    organization = Column(String(255), nullable=False)
+    role = Column(String(100), nullable=False)
+    experience_type = Column(String(100), nullable=True)
+    start_date = Column(String(50), nullable=True)
+    end_date = Column(String(50), nullable=True)
+    responsibilities = Column(Text, nullable=True)
+    technologies = Column(Text, nullable=True)
+
+class StudentAchievement(Base):
+    __tablename__ = "portal_student_achievements"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    category = Column(String(100), nullable=True)
+    date = Column(String(50), nullable=True)
+    organization = Column(String(255), nullable=True)
+
+class StudentActivity(Base):
+    __tablename__ = "portal_student_activities"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    organization = Column(String(255), nullable=False)
+    role = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+
+class StudentCareerProfile(Base):
+    __tablename__ = "portal_student_career_profiles"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), unique=True, nullable=False)
+    target_role = Column(String(100), nullable=False)
+    target_industry = Column(String(100), nullable=False)
+    career_interests = Column(Text, nullable=True)
+    career_readiness_pct = Column(Integer, nullable=False)
+
+class UpcomingTask(Base):
+    __tablename__ = "portal_upcoming_tasks"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    student_id = Column(String(50), ForeignKey("portal_user_accounts.id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    course = Column(String(100), nullable=False)
+    due_date = Column(String(50), nullable=False)
+    priority = Column(String(50), nullable=False)

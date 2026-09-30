@@ -48,7 +48,7 @@ export default function ChatPage({ user }) {
           errorDetail = `Server error (${err.response.status}). Please check backend API server status.`;
         }
       } else if (err.request) {
-        errorDetail = "Backend API server is unreachable. Please verify that the FastAPI backend is running on http://localhost:8000.";
+        errorDetail = "Backend API server is unreachable. Please verify your connection or server status.";
       }
 
       const errorMsg = {

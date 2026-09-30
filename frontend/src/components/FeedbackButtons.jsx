@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { sendFeedback } from '../lib/api';
 
 export default function FeedbackButtons({ queryId }) {
   const [feedbackState, setFeedbackState] = useState(null); // 'positive' | 'negative' | null
@@ -9,12 +9,7 @@ export default function FeedbackButtons({ queryId }) {
     if (feedbackState !== null || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('campusmind_token');
-      await axios.post(
-        'http://localhost:8000/api/chat/feedback',
-        { query_id: queryId, is_positive: isPositive },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await sendFeedback(queryId, isPositive);
       setFeedbackState(isPositive ? 'positive' : 'negative');
     } catch (err) {
       console.error('Feedback error:', err);

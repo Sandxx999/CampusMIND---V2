@@ -1,0 +1,377 @@
+{
+  "users": [
+    {
+      "id": "STU_2024_015",
+      "role": "student",
+      "email": "student.ai@campus.edu",
+      "password_hash": "$2b$12$Jfz1nn9Tlo0G83b45rUMOeLTGFvvb8qqytVFkf605thPQHpnsSYeC",
+      "full_name": "Gadde Sandeep",
+      "profile_photo_url": "https://ui-avatars.com/api/?name=Gadde+Sandeep",
+      "department": "Artificial Intelligence"
+    },
+    {
+      "id": "FAC_CSE_101",
+      "role": "faculty",
+      "email": "aturing@campus.edu",
+      "password_hash": "$2b$12$Jfz1nn9Tlo0G83b45rUMOeLTGFvvb8qqytVFkf605thPQHpnsSYeC",
+      "full_name": "Dr. Alan Turing",
+      "profile_photo_url": "https://ui-avatars.com/api/?name=Alan+Turing",
+      "department": "Artificial Intelligence & CSE"
+    },
+    {
+      "id": "FAC_CSE_102",
+      "role": "faculty",
+      "email": "cynthia@campus.edu",
+      "password_hash": "$2b$12$Jfz1nn9Tlo0G83b45rUMOeLTGFvvb8qqytVFkf605thPQHpnsSYeC",
+      "full_name": "Dr. Cynthia A.",
+      "profile_photo_url": "https://ui-avatars.com/api/?name=Cynthia+A",
+      "department": "Computer Science"
+    },
+    {
+      "id": "FAC_MATH_101",
+      "role": "faculty",
+      "email": "jsimon@campus.edu",
+      "password_hash": "$2b$12$Jfz1nn9Tlo0G83b45rUMOeLTGFvvb8qqytVFkf605thPQHpnsSYeC",
+      "full_name": "Dr. John Simon",
+      "profile_photo_url": "https://ui-avatars.com/api/?name=John+Simon",
+      "department": "Mathematics"
+    },
+    {
+      "id": "FAC_STATS_101",
+      "role": "faculty",
+      "email": "lalexander@campus.edu",
+      "password_hash": "$2b$12$Jfz1nn9Tlo0G83b45rUMOeLTGFvvb8qqytVFkf605thPQHpnsSYeC",
+      "full_name": "Dr. Leslie Alexander",
+      "profile_photo_url": "https://ui-avatars.com/api/?name=Leslie+Alexander",
+      "department": "Statistics"
+    }
+  ],
+  "student_profiles": [
+    {
+      "student_id": "STU_2024_015",
+      "roll_number": "24AI015",
+      "program": "B.Tech Artificial Intelligence",
+      "current_semester": 5,
+      "batch_year": "2024-2028",
+      "overall_attendance_pct": 88.5,
+      "bio": "AI engineering student interested in machine learning, generative AI, intelligent systems, and software engineering.",
+      "location": "Hyderabad",
+      "academic_status": "Active",
+      "links": "{\"github\": \"https://github.com\", \"linkedin\": \"https://linkedin.com\", \"portfolio\": \"https://portfolio.com\"}"
+    }
+  ],
+  "exam_results": [
+    {
+      "student_id": "STU_2024_015",
+      "exam_type": "Mid Term 1",
+      "course_code": "AI301",
+      "course_name": "Deep Learning",
+      "marks_obtained": 38,
+      "max_marks": 40,
+      "grade": "A+",
+      "status": "Pass"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "exam_type": "Mid Term 1",
+      "course_code": "CS201",
+      "course_name": "Data Structures",
+      "marks_obtained": 35,
+      "max_marks": 40,
+      "grade": "A",
+      "status": "Pass"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "exam_type": "Mid Term 1",
+      "course_code": "MATH202",
+      "course_name": "Discrete Math",
+      "marks_obtained": 32,
+      "max_marks": 40,
+      "grade": "B+",
+      "status": "Pass"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "exam_type": "Mid Term 1",
+      "course_code": "AI302",
+      "course_name": "Knowledge Representation",
+      "marks_obtained": 39,
+      "max_marks": 40,
+      "grade": "A+",
+      "status": "Pass"
+    }
+  ],
+  "schedule_slots": [
+    {
+      "day_of_week": "Monday",
+      "start_time": "09:00",
+      "end_time": "10:15",
+      "course_code": "AI301",
+      "course_name": "Deep Learning & Neural Networks",
+      "venue": "Lab 1 (AI Cluster)",
+      "faculty_id": "FAC_CSE_101",
+      "target_program": "B.Tech Artificial Intelligence"
+    },
+    {
+      "day_of_week": "Monday",
+      "start_time": "10:30",
+      "end_time": "11:45",
+      "course_code": "CS201",
+      "course_name": "Data Structures & Algorithms",
+      "venue": "Room 302",
+      "faculty_id": "FAC_CSE_102",
+      "target_program": "B.Tech Artificial Intelligence"
+    },
+    {
+      "day_of_week": "Monday",
+      "start_time": "12:00",
+      "end_time": "13:15",
+      "course_code": "AI302",
+      "course_name": "Knowledge Representation & Ontologies",
+      "venue": "Room 304",
+      "faculty_id": "FAC_CSE_101",
+      "target_program": "B.Tech Artificial Intelligence"
+    },
+    {
+      "day_of_week": "Monday",
+      "start_time": "14:00",
+      "end_time": "15:15",
+      "course_code": "MATH202",
+      "course_name": "Discrete Mathematics & Linear Algebra",
+      "venue": "Lecture Hall 2",
+      "faculty_id": "FAC_MATH_101",
+      "target_program": "B.Tech Artificial Intelligence"
+    },
+    {
+      "day_of_week": "Monday",
+      "start_time": "15:30",
+      "end_time": "16:45",
+      "course_code": "AI303",
+      "course_name": "Applied Statistics & Machine Learning",
+      "venue": "Computing Lab 3",
+      "faculty_id": "FAC_STATS_101",
+      "target_program": "B.Tech Artificial Intelligence"
+    }
+  ],
+  "subject_resources": [
+    {
+      "course_code": "AI301",
+      "faculty_id": "FAC_CSE_101",
+      "title": "Introduction to Neural Networks",
+      "resource_type": "Lecture Slides",
+      "file_url": "https://example.com/ai301_lec1.pdf"
+    },
+    {
+      "course_code": "CS201",
+      "faculty_id": "FAC_CSE_101",
+      "title": "Trees and Graphs Study Guide",
+      "resource_type": "Study Guide",
+      "file_url": "https://example.com/cs201_trees.pdf"
+    }
+  ],
+  "notice_board": [
+    {
+      "title": "Mid Term 2 Exam Schedule Released",
+      "description": "The schedule for Mid Term 2 has been published. Please check the exam section for your respective slots.",
+      "target_audience": "STUDENT",
+      "posted_by": "Examination Branch"
+    },
+    {
+      "title": "Annual AI Hackathon 2026",
+      "description": "Registrations are now open for the campus-wide AI Hackathon. Exciting prizes to be won!",
+      "target_audience": "ALL",
+      "posted_by": "Department of AI"
+    }
+  ],
+  "skills": [
+    {
+      "student_id": "STU_2024_015",
+      "name": "Python",
+      "category": "Programming",
+      "proficiency_pct": 90,
+      "verified": true
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "Machine Learning",
+      "category": "AI/ML",
+      "proficiency_pct": 84,
+      "verified": true
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "Deep Learning",
+      "category": "AI/ML",
+      "proficiency_pct": 78,
+      "verified": true
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "Flask",
+      "category": "Web",
+      "proficiency_pct": 82,
+      "verified": true
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "React",
+      "category": "Web",
+      "proficiency_pct": 70,
+      "verified": true
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "SQL",
+      "category": "Programming",
+      "proficiency_pct": 85,
+      "verified": true
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "Git/GitHub",
+      "category": "Tools",
+      "proficiency_pct": 88,
+      "verified": true
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "Docker",
+      "category": "Tools",
+      "proficiency_pct": 65,
+      "verified": true
+    }
+  ],
+  "projects": [
+    {
+      "student_id": "STU_2024_015",
+      "title": "CampusMIND 2.0",
+      "category": "AI / Full Stack",
+      "description": "Institutional Intelligence Platform",
+      "role": "Full Stack Developer",
+      "technologies": "[\"Python\", \"FastAPI\", \"React\", \"Neon PostgreSQL\", \"Cytoscape\", \"Gemini API\"]",
+      "status": "Active",
+      "github_url": "https://github.com",
+      "live_demo_url": "https://demo.com"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "title": "Smart Campus Management System",
+      "category": "Academic Project",
+      "description": "Academic Project",
+      "role": "Developer",
+      "technologies": "[\"Python\", \"Flask\", \"SQL\", \"HTML/CSS\"]",
+      "status": "Completed",
+      "github_url": "https://github.com",
+      "live_demo_url": ""
+    },
+    {
+      "student_id": "STU_2024_015",
+      "title": "Smart Car Marketplace",
+      "category": "Web Application",
+      "description": "Web Application",
+      "role": "Developer",
+      "technologies": "[\"JavaScript\", \"React\", \"Node.js\", \"SQL\"]",
+      "status": "Completed",
+      "github_url": "https://github.com",
+      "live_demo_url": ""
+    }
+  ],
+  "certifications": [
+    {
+      "student_id": "STU_2024_015",
+      "name": "AWS Cloud Practitioner",
+      "issuer": "AWS",
+      "issue_date": "2025-01-01",
+      "credential_id": "AWS123",
+      "credential_url": "https://aws.amazon.com",
+      "skills": "[\"Cloud\", \"AWS\"]"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "Machine Learning Specialization",
+      "issuer": "Coursera",
+      "issue_date": "2025-05-01",
+      "credential_id": "COURSERA123",
+      "credential_url": "https://coursera.org",
+      "skills": "[\"Machine Learning\"]"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "name": "Introduction to IoT",
+      "issuer": "PHPGurukul",
+      "issue_date": "2025-08-01",
+      "credential_id": "IOT123",
+      "credential_url": "https://example.com",
+      "skills": "[\"IoT\"]"
+    }
+  ],
+  "experiences": [
+    {
+      "student_id": "STU_2024_015",
+      "organization": "ABC Technologies",
+      "role": "AI Engineering Intern",
+      "experience_type": "Internship",
+      "start_date": "Jun 2026",
+      "end_date": "Aug 2026",
+      "responsibilities": "Developed ML pipelines.",
+      "technologies": "[\"Python\", \"Scikit-Learn\"]"
+    }
+  ],
+  "achievements": [
+    {
+      "student_id": "STU_2024_015",
+      "title": "National AI Hackathon Winner",
+      "category": "Competition",
+      "date": "2025-10-01",
+      "organization": "HackIndia Spark"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "title": "Academic Excellence (Top 5% Cohort)",
+      "category": "Academic",
+      "date": "2026-05-01",
+      "organization": "IcfaiTech"
+    }
+  ],
+  "activities": [
+    {
+      "student_id": "STU_2024_015",
+      "organization": "AI Club",
+      "role": "Technical Lead",
+      "description": "Led weekly technical workshops."
+    }
+  ],
+  "career_profiles": [
+    {
+      "student_id": "STU_2024_015",
+      "target_role": "AI Engineer",
+      "target_industry": "Technology / AI",
+      "career_interests": "[\"Machine Learning\", \"Generative AI\", \"Software Engineering\"]",
+      "career_readiness_pct": 78
+    }
+  ],
+  "upcoming_tasks": [
+    {
+      "student_id": "STU_2024_015",
+      "title": "Machine Learning Assignment 3",
+      "course": "AI301",
+      "due_date": "Tomorrow",
+      "priority": "urgent"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "title": "Data Structures Lab Record Submission",
+      "course": "CS201",
+      "due_date": "Oct 02",
+      "priority": "due_soon"
+    },
+    {
+      "student_id": "STU_2024_015",
+      "title": "AI302 Midterm Exam 2",
+      "course": "AI302",
+      "due_date": "Oct 06",
+      "priority": "upcoming"
+    }
+  ]
+}

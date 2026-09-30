@@ -465,3 +465,73 @@ export async function fetchInstitutionDecisionSupport() {
   const response = await axios.get(`${API_V1_URL}/institution/decision-support`, { headers: getAuthHeader() });
   return response.data;
 }
+
+// --- PORTAL ENDPOINTS ---
+
+export async function fetchStudentProfile(studentId) {
+  const response = await axios.get(`/api/portal/student/${studentId}/profile`, { headers: getAuthHeader() });
+  return response.data;
+}
+
+export async function fetchStudentPerformance(studentId) {
+  const response = await axios.get(`http://localhost:8000/api/portal/student/${studentId}/performance`, { headers: getAuthHeader() });
+  return response.data;
+}
+
+export async function fetchStudentMarks(studentId, examType = 'Mid Term 1') {
+  const response = await axios.get(`/api/portal/student/${studentId}/marks`, { 
+    params: { exam_type: examType },
+    headers: getAuthHeader() 
+  });
+  return response.data;
+}
+
+export async function fetchStudentTimetable(studentId) {
+  const response = await axios.get(`/api/portal/student/${studentId}/timetable`, { headers: getAuthHeader() });
+  return response.data;
+}
+
+export async function fetchFacultyDashboard(facultyId) {
+  const response = await axios.get(`/api/portal/faculty/${facultyId}/dashboard`, { headers: getAuthHeader() });
+  return response.data;
+}
+
+export async function fetchNotices(audience = 'ALL') {
+  const response = await axios.get(`/api/portal/notices`, { 
+    params: { audience },
+    headers: getAuthHeader() 
+  });
+  return response.data;
+}
+
+export async function changePassword(data) {
+  const response = await axios.post(`/api/portal/auth/change-password`, data, { headers: getAuthHeader() });
+  return response.data;
+}
+
+// --- GRAPH ENDPOINTS ---
+export async function fetchGraphElements(limit = 100, centerNode = null) {
+  const params = { limit };
+  if (centerNode) params.center_node = centerNode;
+  const response = await axios.get(`/api/graph/elements`, { params, headers: getAuthHeader() });
+  return response.data;
+}
+
+export async function fetchGraphStats() {
+  const response = await axios.get(`/api/graph/stats`, { headers: getAuthHeader() });
+  return response.data;
+}
+
+export async function postPortalChat(message, history = []) {
+  const response = await axios.post(`http://localhost:8000/api/portal/chat`, { message, conversation_history: history }, { headers: getAuthHeader() });
+  return response.data;
+}
+
+
+export const fetchStudentDashboard = async () => {
+    const token = localStorage.getItem('campusmind_token');
+    const response = await axios.get(`/api/portal/student/me/dashboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+};

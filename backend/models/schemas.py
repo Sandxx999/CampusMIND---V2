@@ -73,6 +73,9 @@ class ChatResponse(BaseModel):
     confidence: float
     evidence_quality: str = "high"
     is_fallback: bool
+    source: str = "okf_graph"
+    reasoning_trace: Optional[str] = None
+    extracted_anchors: List[str] = Field(default_factory=list)
 
 
 class FeedbackRequest(BaseModel):

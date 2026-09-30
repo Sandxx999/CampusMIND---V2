@@ -34,31 +34,16 @@ from api.routes_interventions import router_v1 as interventions_router_v1
 from api.routes_notifications import router_v1 as notifications_router_v1
 from api.routes_action_plans import router_v1 as plans_router_v1
 from api.routes_institution import router_v1 as institution_router_v1
+from api.routes_portal import router as portal_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for application startup and shutdown tasks."""
-    logger.info("Initializing CampusMind 2.0 RAG system foundation...")
-    app.state.is_ready = False
-    
-    def run_ingestion():
-        try:
-            from rag.ingest import ingest_campus_data
-            ingest_campus_data()
-            app.state.is_ready = True
-            logger.info("RAG Ingestion completed successfully. System is now fully ready.")
-        except Exception as e:
-            logger.error(f"CRITICAL: RAG ingestion failed during startup: {e}")
-            logger.error("Bringing down the container to prevent serving traffic with a broken vector store.")
-            import os
-            os._exit(1)
-
-    import threading
-    thread = threading.Thread(target=run_ingestion, daemon=True)
-    thread.start()
-    
+    logger.info("Initializing CampusMind 2.0 OKF system foundation...")
+    app.state.is_ready = True
     yield
+    logger.info("CampusMind 2.0 system shutdown complete.")
     logger.info("Shutting down CampusMind 2.0 API server cleanly...")
 
 
@@ -144,18 +129,27 @@ app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(admin_router)
 app.include_router(students_router)
+app.include_router(portal_router)
+
+from api.routes_graph import router as graph_router
+app.include_router(graph_router)
 
 
-@app.get("/", tags=["Root"])
-def root():
-    """Welcome endpoint pointing to API documentation and health check."""
-    return {
-        "message": "Welcome to CampusMIND 2.0 Enterprise API",
-        "health": "/health",
-        "readiness": "/ready",
-        "documentation": "/docs",
-        "version": "2.0.0",
-    }
+from fastapi.staticfiles import StaticFiles
+import os
+
+frontend_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../frontend/dist")
+if os.path.isdir(frontend_dist):
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="static")
+else:
+    @app.get("/", tags=["Root"])
+    def root():
+        """Welcome endpoint pointing to API documentation and health check."""
+        return {
+            "message": "Welcome to CampusMIND 2.0 Enterprise API (Frontend not built)",
+            "health": "/health",
+            "docs": "/docs"
+        }
 
 
 if __name__ == "__main__":

@@ -1,0 +1,27 @@
+{
+  "name": "campus-ai-assistant",
+  "version": "1.0.0",
+  "description": "CampusMIND 2.0 is an enterprise-grade Retrieval-Augmented Generation (RAG) assistant designed for higher education institutions. It provides role-scoped access control (RBAC), citation tracking, student analytics, structured logging, intelligent document chunking, hybrid vector/lexical retrieval, evidence quality scoring, prompt injection defense, and robust API security.",
+  "main": "agent.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sandxx999/CampusMIND.git"
+  },
+  "keywords": [],
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Sandxx999/CampusMIND/issues"
+  },
+  "homepage": "https://github.com/Sandxx999/CampusMIND#readme",
+  "dependencies": {
+    "@google/genai": "^2.24.0",
+    "dotenv": "^18.0.3"
+  }
+}

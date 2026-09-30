@@ -4,14 +4,12 @@
 
 @layer base {
   body {
-    background-color: #ECEFF6;
+    background-color: #f8fafc;
     background-image: 
-      radial-gradient(at 10% 10%, rgba(56, 189, 248, 0.22) 0px, transparent 50%),
-      radial-gradient(at 90% 15%, rgba(168, 85, 247, 0.2) 0px, transparent 50%),
-      radial-gradient(at 50% 90%, rgba(236, 72, 153, 0.18) 0px, transparent 55%),
-      radial-gradient(at 85% 85%, rgba(52, 211, 153, 0.2) 0px, transparent 45%);
+      radial-gradient(circle at 15% 50%, rgba(56, 189, 248, 0.15), transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.15), transparent 50%);
     background-attachment: fixed;
-    color: #0F172A;
+    color: #0f172a;
     font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
@@ -24,8 +22,33 @@
 }
 
 /* ==========================================================================
-   TOTAL ALL-WHITE CLEAR BLURRY MIRROR GLASSMORPHISM SYSTEM
+   DESIGN TOKENS & GLASSMORPHISM CLASSES
    ========================================================================== */
+
+/* Text Tokens */
+.text-primary {
+  color: #0f172a;
+}
+.text-muted {
+  color: #64748b;
+}
+
+/* Ambient Floating Gradient Blur */
+.ambient-blur {
+  filter: blur(100px);
+  -webkit-filter: blur(100px);
+}
+
+/* Glass Card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.06);
+}
+
+
 
 /* Navbar Mirror Glass */
 .glass-mirror-navbar {
