@@ -474,7 +474,7 @@ export async function fetchStudentProfile(studentId) {
 }
 
 export async function fetchStudentPerformance(studentId) {
-  const response = await axios.get(`http://localhost:8000/api/portal/student/${studentId}/performance`, { headers: getAuthHeader() });
+  const response = await axios.get(`/api/portal/student/${studentId}/performance`, { headers: getAuthHeader() });
   return response.data;
 }
 
@@ -523,7 +523,7 @@ export async function fetchGraphStats() {
 }
 
 export async function postPortalChat(message, history = []) {
-  const response = await axios.post(`http://localhost:8000/api/portal/chat`, { message, conversation_history: history }, { headers: getAuthHeader() });
+  const response = await axios.post(`/api/portal/chat`, { message, conversation_history: history }, { headers: getAuthHeader() });
   return response.data;
 }
 
