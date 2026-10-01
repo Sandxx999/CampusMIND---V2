@@ -16,6 +16,20 @@ SessionLocal = sessionmaker(bind=engine)
 
 def reset_and_seed():
     print("Connecting to Neon PostgreSQL...")
+    
+    session = SessionLocal()
+    try:
+        from sqlalchemy import inspect
+        inspector = inspect(engine)
+        if inspector.has_table("portal_user_accounts"):
+            if session.query(UserAccount).first():
+                print("Database already seeded. Skipping seed.")
+                return
+    except Exception as e:
+        print(f"Error checking if seeded: {e}")
+    finally:
+        session.close()
+
     # Drop all portal tables (since they are new, this acts as a reset)
     # Be careful not to drop the whole Base because we might drop auth tables.
     # We will just drop and recreate our specific portal tables.

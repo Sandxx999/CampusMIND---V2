@@ -8,7 +8,7 @@ services:
     region: singapore
     plan: free
     buildCommand: ./build.sh
-    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: cd backend && python scripts/seed_canonical_db.py && python scripts/reset_and_seed_portal.py && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
