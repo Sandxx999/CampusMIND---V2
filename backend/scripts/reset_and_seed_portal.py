@@ -1,4 +1,16 @@
 import os
+import sys
+from pathlib import Path
+
+# Ensure both 'backend' directory and project root are always in sys.path
+CURRENT_DIR = Path(__file__).resolve().parent
+BACKEND_DIR = CURRENT_DIR.parent
+ROOT_DIR = BACKEND_DIR.parent
+
+for p in [str(BACKEND_DIR), str(ROOT_DIR)]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 import json
 import uuid
 from datetime import datetime
