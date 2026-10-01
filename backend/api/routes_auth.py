@@ -15,36 +15,38 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 router_v1 = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
+from typing import Optional
+
 class LoginRequest(BaseModel):
-    username: str | None = None
-    email: str | None = None
+    identifier: Optional[str] = None
+    email: Optional[str] = None
+    username: Optional[str] = None
     password: str
 
 from sqlalchemy import func
 
 @router.post("/login")
 @router_v1.post("/login")
-def login(request: LoginRequest):
-    login_id_raw = (request.username or request.email or "").strip()
-    login_id_lower = login_id_raw.lower()
-    if not login_id_raw:
+def login(payload: LoginRequest):
+    login_val = (payload.identifier or payload.email or payload.username or "").strip()
+    if not login_val:
         raise HTTPException(status_code=400, detail="Must provide username or email")
     with get_db_session() as db:
         user = db.query(UserAccount).filter(
             or_(
-                func.lower(UserAccount.id) == login_id_lower,
-                UserAccount.id == login_id_raw,
-                func.lower(UserAccount.email) == login_id_lower
+                func.lower(UserAccount.email) == login_val.lower(),
+                func.lower(getattr(UserAccount, 'username', UserAccount.id)) == login_val.lower(),
+                func.lower(getattr(UserAccount, 'student_id', getattr(UserAccount, 'username', UserAccount.id))) == login_val.lower(),
+                func.lower(getattr(UserAccount, 'faculty_id', getattr(UserAccount, 'username', UserAccount.id))) == login_val.lower()
             )
         ).first()
         
-        if not user or not pwd_context.verify(request.password, user.password_hash):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        password_field = getattr(user, 'hashed_password', getattr(user, 'password_hash', None)) if user else None
+        
+        if not user or not password_field or not pwd_context.verify(payload.password, password_field):
+            raise HTTPException(status_code=401, detail="Invalid username or password. Please try again.")
             
+
         access_token = create_access_token(
             data={"sub": user.id, "role": user.role, "name": user.full_name}
         )

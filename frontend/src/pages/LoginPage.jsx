@@ -40,7 +40,12 @@ export default function LoginPage({ onLoginSuccess }) {
     setLoading(true);
 
     try {
-      const response = await axios.post(`/api/auth/login`, { username, password });
+      const response = await axios.post(`/api/auth/login`, {
+        identifier: username.trim(),
+        email: username.trim(),
+        username: username.trim(),
+        password: password
+      });
       const { access_token, user } = response.data;
       localStorage.setItem('campusmind_token', access_token);
       localStorage.setItem('campusmind_user', JSON.stringify(user));
