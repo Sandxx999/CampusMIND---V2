@@ -247,7 +247,7 @@ def seed_canonical_data():
                     offering_obj = offerings_map.get(c_code)
                     if c_obj:
                         enr = Enrollment(
-                            id=f"enr_{sp.id}_{c_obj.id}",
+                            id=str(uuid.uuid4()),
                             student_profile_id=sp.id,
                             course_id=c_obj.id,
                             course_offering_id=offering_obj.id if offering_obj else None,
@@ -268,7 +268,7 @@ def seed_canonical_data():
                     for c_code, offering in list(offerings_map.items())[:3]:
                         status_val = "present" if i % 4 != 0 else "absent"
                         att_rec = AttendanceRecord(
-                            id=f"att_{std1_sp.id}_{offering.id}_{i}",
+                            id=str(uuid.uuid4()),
                             student_profile_id=std1_sp.id,
                             course_offering_id=offering.id,
                             course_id=offering.course_id,
@@ -311,7 +311,7 @@ def seed_canonical_data():
 
                 if std1_sp:
                     grd1 = AssessmentGrade(
-                        id=f"grd_{midterm.id}_{std1_sp.id}",
+                        id=str(uuid.uuid4()),
                         assessment_id=midterm.id,
                         student_profile_id=std1_sp.id,
                         obtained_marks=88.5,
@@ -320,7 +320,7 @@ def seed_canonical_data():
                         evaluator_id=faculty_user.id if faculty_user else None,
                     )
                     grd2 = AssessmentGrade(
-                        id=f"grd_{quiz1.id}_{std1_sp.id}",
+                        id=str(uuid.uuid4()),
                         assessment_id=quiz1.id,
                         student_profile_id=std1_sp.id,
                         obtained_marks=18.0,
