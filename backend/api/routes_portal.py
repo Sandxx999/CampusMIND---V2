@@ -19,16 +19,18 @@ from db.models import (
     UpcomingTask
 )
 from pydantic import BaseModel
-import bcrypt
+from passlib.context import CryptContext
 from api.deps import require_role
 from api.deps import get_current_user
 import json
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    return pwd_context.verify(plain_password, hashed_password)
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    return pwd_context.hash(password)
 
 router = APIRouter(prefix="/api/portal", tags=["Portal"])
 
