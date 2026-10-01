@@ -32,6 +32,10 @@ def get_engine(database_url: Optional[str] = None) -> Engine:
     Supports SQLite and PostgreSQL.
     """
     url = database_url or settings.DATABASE_URL
+    
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+        
     if url in _engine_cache:
         return _engine_cache[url]
 
@@ -39,21 +43,21 @@ def get_engine(database_url: Optional[str] = None) -> Engine:
         engine = create_engine(
             url,
             connect_args={"check_same_thread": False},
-            pool_pre_ping=settings.DB_POOL_PRE_PING,
+            pool_pre_ping=True,
             echo=False,
         )
-    elif url.startswith("postgresql://") or url.startswith("postgresql+psycopg2://"):
+    elif url.startswith("postgresql://") or url.startswith("postgresql+psycopg2://") or url.startswith("postgresql+psycopg://"):
         engine = create_engine(
             url,
             pool_size=settings.DB_POOL_SIZE,
             max_overflow=settings.DB_MAX_OVERFLOW,
             pool_timeout=settings.DB_POOL_TIMEOUT,
             pool_recycle=settings.DB_POOL_RECYCLE,
-            pool_pre_ping=settings.DB_POOL_PRE_PING,
+            pool_pre_ping=True,
             echo=False,
         )
     else:
-        engine = create_engine(url, pool_pre_ping=settings.DB_POOL_PRE_PING, echo=False)
+        engine = create_engine(url, pool_pre_ping=True, echo=False)
 
     _engine_cache[url] = engine
     return engine
